@@ -18,7 +18,7 @@ defmodule NervesWatchdog do
     
     apply(revert_mfa)
     {:ok, %{
-      timer_t: Process.send_after(self(), :timeout, timeout),
+      timer_ref: Process.send_after(self(), :timeout, timeout),
       timeout: timeout,
       reverted?: true,
       reboot_mfa: reboot_mfa,
@@ -28,7 +28,8 @@ defmodule NervesWatchdog do
 
   def handle_call(:validate, _from, %{reverted?: reverted?, revert_mfa: {m, f, a}} = s) do
     if reverted?, do: apply(m, f, a)
-    {:stop, :normal, :ok, s}
+    Process.cancel_timer(s.timer_ref)
+    {:stop, :normal, :ok, %{reverted?: false, timer_ref: nil}}
   end
 
   def handle_info(:timeout, %{reverted?: reverted?, reboot_mfa: {m, f, a}} = s) do
