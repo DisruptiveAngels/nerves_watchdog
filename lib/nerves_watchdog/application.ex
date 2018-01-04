@@ -7,10 +7,10 @@ defmodule NervesWatchdog.Application do
 
   def start(_type, _args) do
     # List all child processes to be supervised
-    
+    args = Application.get_all_env(:nerves_watchdog)
     children = [
       # Starts a worker by calling: NervesWatchdog.Worker.start_link(arg)
-      {NervesWatchdog, Application.get_all_env(:nerves_watchdog)},
+      Supervisor.child_spec({NervesWatchdog, args}, restart: :transient)
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
